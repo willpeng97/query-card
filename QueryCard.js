@@ -131,18 +131,22 @@ export class QueryCard {
       console.error("Chart has not been initialized. Call init() first.");
       return;
     }
+    // 1. 顯示loading畫面
+    this.chart.showLoading()
 
+    // 2. call API 取得資料
     const gridData = await this.fetchData()
-    console.log(gridData)
-    const chartData = this.dataProcessing(gridData)
-    console.log(chartData)
 
+    // 3. 處理成echart格式
+    const chartData = this.dataProcessing(gridData)
+
+    // 4. 更新圖表
     this.option.xAxis[0].data = chartData.xAxisData;
     this.option.series = chartData.seriesData;
-
-    // 更新圖表
     this.chart.setOption(this.option);
-  
+
+    // 5. 關閉loading畫面
+    this.chart.hideLoading()
   }
 
   dataProcessing(gridData){
