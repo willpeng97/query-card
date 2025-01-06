@@ -1,4 +1,5 @@
 // 依賴套件: echart、bootstrap，若html中沒有引用就會掛
+const offlineMode = true //不在公司網路時，使用假資料測試
 
 export class QueryCard {
   constructor({ 
@@ -92,17 +93,108 @@ export class QueryCard {
 
     this.cardElement.innerHTML = `
       <div class="card-header">
-        <h5 class="card-title mb-0">${this.title}</h5>
+        <div class="row g-3 align-items-center justify-content-between">
+          <div class="col-auto">
+            <div class="col-form-label">${this.title}</div>
+          </div>
+          <div class="col-auto d-flex align-items-center">
+            <!-- 切换按钮组 -->
+            <div class="btn-group btn-group-sm" role="group" aria-label="Toggle Chart and Table">
+              <input 
+                type="radio" 
+                class="btn-check" 
+                name="${this.containerId}-view" 
+                id="${this.containerId}-chartRadio" 
+                autocomplete="off" 
+                checked
+              >
+              <label class="btn btn-outline-secondary shadow-none" for="${this.containerId}-chartRadio"><i class="fa-solid fa-chart-line"></i></label>
+
+              <input 
+                type="radio" 
+                class="btn-check" 
+                name="${this.containerId}-view" 
+                id="${this.containerId}-tableRadio" 
+                autocomplete="off"
+              >
+              <label class="btn btn-outline-secondary shadow-none" for="${this.containerId}-tableRadio"><i class="fa-solid fa-table-list"></i></label>
+            </div>
+
+            <button
+              id="dropdownId"
+              type="button"
+              class="btn shadow-none"
+              data-bs-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+              title="更多選項"
+            >
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownId">
+              <a class="dropdown-item" href="#" id="downloadImageBtn"><i class="fa-solid fa-download text-secondary"></i> download Image</a>
+              <a class="dropdown-item" href="#" id="downloadXlsxBtn"><i class="fa-solid fa-download text-secondary"></i> download Data</a>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="card-body">
-        <div id="${this.containerId}-chart" class="h-100"></div>
+        <div id="${this.containerId}-content" class="h-100">
+          <div id="${this.containerId}-chart" class="h-100"></div>
+          <div id="${this.containerId}-table" style="display: none;">
+            <!-- 表格内容 -->
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>数据1</th>
+                  <th>数据2</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>值1</td>
+                  <td>值2</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>值3</td>
+                  <td>值4</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     `;
 
-    // 将卡片插入到容器中
+    
+    // 將卡片插入到容器
     container.appendChild(this.cardElement);
 
-    // 初始化图表
+    // 切換邏輯
+    const chartRadio = this.cardElement.querySelector(`#${this.containerId}-chartRadio`);
+    const tableRadio = this.cardElement.querySelector(`#${this.containerId}-tableRadio`);
+    const chartElement = this.cardElement.querySelector(`#${this.containerId}-chart`);
+    const tableElement = this.cardElement.querySelector(`#${this.containerId}-table`);
+
+    chartRadio.addEventListener('change', () => {
+      if (chartRadio.checked) {
+        chartElement.style.display = '';
+        tableElement.style.display = 'none';
+      }
+    });
+
+    tableRadio.addEventListener('change', () => {
+      if (tableRadio.checked) {
+        chartElement.style.display = 'none';
+        tableElement.style.display = '';
+      }
+    });
+
+
+    // 初始化echart
     const chartWrapper = document.getElementById(`${this.containerId}-chart`)
     this.chart = echarts.init(chartWrapper);
 
@@ -183,6 +275,17 @@ export class QueryCard {
 
   // API取得數據
   async fetchData() {
+    if (offlineMode){
+      let mockData = await fetch("./mockData.json")
+        .then((response)=>{
+          return response.json()
+        })
+        .then((data)=>{
+          return data
+        })
+      return mockData
+    }
+
     let getGridURL = window.location.protocol+'//localhost/DCMATE_MEMS_API/api/GetFunctionGrid';
     // let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetFunctionGrid';
 

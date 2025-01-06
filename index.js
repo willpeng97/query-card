@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱
     containerId: "cardWrapper1",
     category: "REPORT_TIME", //x軸欄位
-    styles: { height: "400px"} //卡片最外層元素的樣式，必須定義高度不然會掛，預設為100%
+    styles: { height: "400px"} //卡片最外層元素的樣式，必須定義高度不然會掛
   });
   card1.init()
 });
