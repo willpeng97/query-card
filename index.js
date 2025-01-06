@@ -1,24 +1,12 @@
 import { QueryCard } from "./QueryCard.js";
 
-const card1 = new QueryCard({
-  containerId: "cardWrapper1",
-  styles: { height: "300px" }
+document.addEventListener("DOMContentLoaded", () => {
+  const card1 = new QueryCard({
+    SID: "366647515707003", //智能查詢SID，必須用資料表函式
+    TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱
+    containerId: "cardWrapper1",
+    category: "REPORT_TIME", //x軸欄位
+    styles: { height: "400px"} //卡片最外層元素的樣式，height必填不然會掛
+  });
+  card1.init()
 });
-card1.init()
-
-const chartData = await fetch("./mockData.json")
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json(); // 将响应解析为 JSON
-    })
-    .then((data) => {
-      return data
-    })
-    .catch((error) => {
-      console.error("Error fetching data:", error);
-    });
-
-
-card1.setData(chartData)
