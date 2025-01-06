@@ -1,4 +1,4 @@
-// 依賴套件: echart、bootstrap，若html中沒有引用就會掛
+// 依賴套件: echart、bootstrap(bundle)，若html中沒有引用就會掛
 const offlineMode = true //不在公司網路時，使用假資料測試
 
 export class QueryCard {
@@ -92,13 +92,16 @@ export class QueryCard {
     Object.assign(this.cardElement.style, this.styles);
 
     this.cardElement.innerHTML = `
-      <div class="card-header">
+      <div class="card-header py-1">
         <div class="row g-3 align-items-center justify-content-between">
           <div class="col-auto">
-            <div class="col-form-label">${this.title}</div>
+            <div class="col-form-label fw-bold">${this.title}</div>
           </div>
-          <div class="col-auto d-flex align-items-center">
-            <!-- 切换按钮组 -->
+          <div class="col-auto d-flex align-items-center gap-2">
+            <div>
+              <input type="checkbox" class="btn-check" id="${this.containerId}-isStackBtn" autocomplete="off">
+              <label class="btn btn-sm border-0 btn-outline-secondary" for="${this.containerId}-isStackBtn"><i class="fa-solid fa-layer-group"></i></label><br>
+            </div>
             <div class="btn-group btn-group-sm" role="group" aria-label="Toggle Chart and Table">
               <input 
                 type="radio" 
@@ -123,7 +126,7 @@ export class QueryCard {
             <button
               id="dropdownId"
               type="button"
-              class="btn shadow-none"
+              class="btn shadow-none border-0"
               data-bs-toggle="dropdown"
               aria-haspopup="true"
               aria-expanded="false"
@@ -135,6 +138,7 @@ export class QueryCard {
               <a class="dropdown-item" href="#" id="downloadImageBtn"><i class="fa-solid fa-download text-secondary"></i> download Image</a>
               <a class="dropdown-item" href="#" id="downloadXlsxBtn"><i class="fa-solid fa-download text-secondary"></i> download Data</a>
             </div>
+
           </div>
         </div>
       </div>
