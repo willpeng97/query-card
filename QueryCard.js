@@ -22,7 +22,6 @@ export class QueryCard {
     this.chart = null;
     this.title = title; // 標題
     this.cardElement = null; // 儲存卡片元素
-    this.cardData = null; // 卡片資料
     this.category = category
     this.fields = fields;
     this.type = type;
@@ -80,7 +79,6 @@ export class QueryCard {
       ],
       series: []
     };
-    this.gridData = null
   }
 
   // 初始化卡片
@@ -213,17 +211,18 @@ export class QueryCard {
     this.chart.showLoading()
 
     // 2. call API 取得資料
+    let gridData = []
     if (this.isFuncTable){
-      this.gridData = await this.getFuncGrid()
+      gridData = await this.getFuncGrid()
     } else {
-      this.gridData = await this.getGrid()
+      gridData = await this.getGrid()
     }
 
     // 3. 更新表格
-    this.setTable()
+    this.setTable(gridData)
 
     // 4. 處理成echart格式
-    const chartData = this.dataProcessing()
+    const chartData = this.dataProcessing(gridData)
 
     // 5. 更新圖表
     this.option.xAxis[0].data = chartData.xAxisData;
@@ -234,12 +233,12 @@ export class QueryCard {
     this.chart.hideLoading()
   }
 
-  setTable() {
+  setTable(gridData) {
     const tableWrapper = document.getElementById(`${this.containerId}-table`);
     tableWrapper.innerHTML = ''; // 清空容器內容
     
     // 動態生成表格標題
-    const columns = Object.keys(this.gridData[0]); //取得所有欄位名
+    const columns = Object.keys(gridData[0]); //取得所有欄位名
     const table = `
       <table class="table table-sm mb-0">
         <thead class="sticky-top">
@@ -248,7 +247,7 @@ export class QueryCard {
           </tr>
         </thead>
         <tbody>
-          ${this.gridData.map((row) => `
+          ${gridData.map((row) => `
             <tr>
               ${columns.map((column)=>`<td>${row[column]}</td>`).join('')}
             </tr>
@@ -259,13 +258,13 @@ export class QueryCard {
     tableWrapper.innerHTML = table;
   }
 
-  dataProcessing(){
+  dataProcessing(gridData){
     // const fields = Object.keys(gridData[0]).filter(key => key !== this.category);
     const colors = ["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#FF9F40",
             "#D83F87","#00B3A9","#2E97FF","#EAC435","#6A4C93","#EF6C00",];
   
     let chartData = {
-      xAxisData:this.gridData.map(row => row[this.category]),
+      xAxisData:gridData.map(row => row[this.category]),
       seriesData:this.fields.map((field, index) => {
         return {
           name: field, // 設定系列名稱
@@ -283,7 +282,7 @@ export class QueryCard {
             color: colors[index % colors.length], // 設置區域顏色，可以和 line 顏色一致
             opacity: 0.3, // 調整區域透明度
           },
-          data: this.gridData.map(row => row[field]), // 提取該欄位的數據
+          data: gridData.map(row => row[field]), // 提取該欄位的數據
         };
       })
     }
