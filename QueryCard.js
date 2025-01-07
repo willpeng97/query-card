@@ -447,7 +447,7 @@ export class QueryCard {
     link.href = url;
     const now = new Date();
     const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
-    link.download = `chart_${formattedDate}.png`; // 圖片名稱
+    link.download = `${this.title}_chart_${formattedDate}.png`; // 圖片名稱
     link.click();
   }
   downloadXlsx() {
@@ -472,6 +472,6 @@ export class QueryCard {
     // 將工作簿保存為檔案
     const now = new Date();
     const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
-    XLSX.writeFile(wb, `data_${formattedDate}.xlsx`);
+    XLSX.writeFile(wb, `${this.title}_data_${formattedDate}.xlsx`);
   }
 }
