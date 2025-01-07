@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     containerId: "cardWrapper2",
     category: "CHECK_IN_TIME",
     fields: ["NG_CODE_QTY"],
-    styles: { height: "300px"}
+    styles: { height: "500px"}
   });
   card2.init()
 });

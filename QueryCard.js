@@ -150,30 +150,7 @@ export class QueryCard {
       <div class="card-body pt-1">
         <div id="${this.containerId}-content" class="h-100">
           <div id="${this.containerId}-chart" class="h-100"></div>
-          <div id="${this.containerId}-table" style="display: none;">
-            <!-- 表格内容 -->
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>数据1</th>
-                  <th>数据2</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>值1</td>
-                  <td>值2</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>值3</td>
-                  <td>值4</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <div id="${this.containerId}-table" class="overflow-auto" style="display: none; height:calc(${this.cardElement.style.height} - 64px)"></div>
         </div>
       </div>
     `;
@@ -208,7 +185,7 @@ export class QueryCard {
     this.chart = echarts.init(chartWrapper);
 
     // 取得第一次資料
-    this.updateCard()
+    this.update()
 
     // 響應式RWD
     window.addEventListener('resize', () => {
@@ -227,7 +204,7 @@ export class QueryCard {
   }
 
   // 更新卡片資料
-  async updateCard() {
+  async update() {
     if (!this.chart) {
       console.error("Chart has not been initialized. Call init() first.");
       return;
@@ -242,16 +219,44 @@ export class QueryCard {
       this.gridData = await this.getGrid()
     }
 
-    // 3. 處理成echart格式
+    // 3. 更新表格
+    this.setTable()
+
+    // 4. 處理成echart格式
     const chartData = this.dataProcessing()
 
-    // 4. 更新圖表
+    // 5. 更新圖表
     this.option.xAxis[0].data = chartData.xAxisData;
     this.option.series = chartData.seriesData;
     this.chart.setOption(this.option);
 
-    // 5. 關閉loading畫面
+    // 6. 關閉loading畫面
     this.chart.hideLoading()
+  }
+
+  setTable() {
+    const tableWrapper = document.getElementById(`${this.containerId}-table`);
+    tableWrapper.innerHTML = ''; // 清空容器內容
+    
+    // 動態生成表格標題
+    const columns = Object.keys(this.gridData[0]); //取得所有欄位名
+    const table = `
+      <table class="table table-sm mb-0">
+        <thead class="sticky-top">
+          <tr>
+            ${columns.map((column) => `<th>${column}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${this.gridData.map((row) => `
+            <tr>
+              ${columns.map((column)=>`<td>${row[column]}</td>`).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `
+    tableWrapper.innerHTML = table;
   }
 
   dataProcessing(){
