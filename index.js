@@ -8,9 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
     containerId: "cardWrapper1",
     category: "CHECK_IN_TIME",
     seriesFields: ["NG_CODE_QTY"],
-    styles: { height: "500px"}
+    styles: { height: "500px"},
+    // timeUnit: "month",
   });
-  // card1.init()
+  card1.init()
 
   // type2. Function Table查詢
   window.card2 = new QueryCard({
@@ -26,5 +27,5 @@ document.addEventListener("DOMContentLoaded", () => {
     stack: true // 預設是否為堆疊
   });
 
-  card2.init()
+  // card2.init()
 });

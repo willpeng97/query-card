@@ -12,6 +12,9 @@ export class QueryCard {
     title="Query Card",
     type="line",
     stack=false,
+    timeUnit="day",
+    queryDate=new Date().toISOString().split('T')[0],
+    queryMonth=new Date().toISOString().split('T')[0].slice(0,7),
     styles={}
   })
   {
@@ -24,8 +27,11 @@ export class QueryCard {
     this.cardElement = null; // 儲存卡片元素
     this.category = category
     this.seriesFields = seriesFields;
-    this.type = type;
+    this.type = type.toLowerCase();
     this.stack = stack;
+    this.timeUnit = timeUnit.toLowerCase()
+    this.queryDate = queryDate
+    this.queryMonth = queryMonth
     this.styles = styles; // 卡片樣式
     this.option = {
       grid: {
@@ -61,7 +67,7 @@ export class QueryCard {
         {
           type: "category",
           data: [],
-          boundaryGap: type.toLowerCase() === "line" ? false : true,
+          boundaryGap: type === "line" ? false : true,
           axisPointer: {
             shadowStyle: {
               color: "rgba(0, 0, 0, 0.08)", // 自定義陰影顏色
@@ -102,16 +108,16 @@ export class QueryCard {
           </div>
           <div class="col-auto d-flex align-items-center gap-2">
             <div>
-              <select id="${this.containerId}-timeUnit" class="form-select form-select-sm">
-                <option value="day">日</option>
-                <option value="month">月</option>
+              <select id="${this.containerId}-timeUnitInput" class="form-select form-select-sm">
+                <option value="day" ${this.timeUnit === "day" ? "selected" : ""}>日</option>
+                <option value="month" ${this.timeUnit === "month" ? "selected" : ""}>月</option>
               </select>
             </div>
-            <div>
-              <input type="date" id="${this.containerId}-date" value="${new Date().toISOString().split('T')[0]}" class="form-control form-control-sm">
+            <div style="display: ${this.timeUnit === "day" ? "" : "none"}">
+              <input type="date" id="${this.containerId}-queryDateInput" value="${this.queryDate}" class="form-control form-control-sm">
             </div>
-            <div style="display: none">
-              <input type="month" id="${this.containerId}-month" class="form-control form-control-sm">
+            <div style="display: ${this.timeUnit === "month" ? "" : "none"}">
+              <input type="month" id="${this.containerId}-queryMonthInput" value="${this.queryMonth}" class="form-control form-control-sm">
             </div>
             <div style="display:${this.seriesFields.length <= 1 ? "none" : ""}">
               <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off" ${this.stack ? "checked" : ""}>
@@ -188,7 +194,34 @@ export class QueryCard {
     // 將卡片插入到容器
     container.appendChild(this.cardElement);
 
-    // 切換邏輯
+    // 切換時間
+    const timeUnitInput = this.cardElement.querySelector(`#${this.containerId}-timeUnitInput`);
+    const queryDateInput = this.cardElement.querySelector(`#${this.containerId}-queryDateInput`);
+    const queryMonthInput = this.cardElement.querySelector(`#${this.containerId}-queryMonthInput`);
+    timeUnitInput.addEventListener('change', () => {
+      this.timeUnit = timeUnitInput.value
+      switch(this.timeUnit){
+        case "day":
+          queryDateInput.parentElement.style.display = '';
+          queryMonthInput.parentElement.style.display = 'none';
+          break;
+        case "month":
+          queryMonthInput.parentElement.style.display = '';
+          queryDateInput.parentElement.style.display = 'none';
+          break;
+      }
+      this.update()
+    });
+    queryDateInput.addEventListener('change', () => {
+      this.queryDate = queryDateInput.value
+      this.update()
+    });
+    queryMonthInput.addEventListener('change', () => {
+      this.queryMonth = queryMonthInput.value
+      this.update()
+    });
+
+    // 切換圖or表
     const chartRadio = this.cardElement.querySelector(`#${this.containerId}-chartRadio`);
     const tableRadio = this.cardElement.querySelector(`#${this.containerId}-tableRadio`);
     const chartElement = this.cardElement.querySelector(`#${this.containerId}-chart`);
@@ -233,6 +266,7 @@ export class QueryCard {
         this.stack = false
       }
     });
+
 
     // 切換圖表類型
     const barChartBtn = this.cardElement.querySelector(`#${this.containerId}-barChartBtn`);
@@ -413,10 +447,25 @@ export class QueryCard {
         // 可以添加其他必要的请求头信息
     });
   
-    let conditions = {
-      // "Field": [],
-      // "Oper": [],
-      // "Value": []
+    let conditions;
+    switch(this.timeUnit){
+      case "day":
+        conditions = {
+          "Field": [this.category],
+          "Oper": ["BETWEEN"],
+          "Value": [`${this.queryDate} 00:00:00' AND '${this.queryDate} 23:59:59`]
+        }
+        break;
+      case "month":
+        // 取得這個月的第一天
+        const firstDayThisMonth = new Date(`${this.queryMonth}-01`); // "2024-01-01"
+        // 取得下個月的第一天
+        const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 1); // "2024-02-01"
+        conditions = {
+          "Field": [this.category],
+          "Oper": ["BETWEEN"],
+          "Value": [`${firstDayThisMonth.toLocaleString('en-ca').split(',')[0]}' AND '${firstDayNextMonth.toLocaleString('en-ca').split(',')[0]}`]
+        }
     }
 
     // 构建请求体
