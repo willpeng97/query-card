@@ -1,5 +1,5 @@
 // 依賴套件: echart、bootstrap(bundle)，若html中沒有引用就會掛
-const offlineMode = true //不在公司網路時，使用假資料測試
+const offlineMode = true //使用本地資料測試 mockData.json
 
 export class QueryCard {
   constructor({ 
