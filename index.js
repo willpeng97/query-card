@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isFuncTable: true, //是否為資料表函式
     TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱(若isFuncTable則必須填)
     category: "REPORT_TIME", //x軸欄位
-    seriesFields: ["RK10","RK4","RK5"], //y軸欄位
+    seriesFields: ["RK10","RK4","RK5","RK6","RK7","RK9","SP1000","SP1001","SP150","SP500","SP503"], //y軸欄位
     styles: { height: "400px"}, //卡片最外層元素的樣式，必須定義高度不然會掛
     type: "bar", // "line" or "bar"
     stack: true // 預設是否為堆疊

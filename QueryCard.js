@@ -150,8 +150,27 @@ export class QueryCard {
               <i class="fas fa-ellipsis-v"></i>
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownId" style="z-index:9999">
-              <button class="dropdown-item" id="${this.containerId}-downloadImage"><i class="fa-solid fa-download text-secondary"></i> download Image</button>
-              <button class="dropdown-item" id="${this.containerId}-downloadData"><i class="fa-solid fa-download text-secondary"></i> download Data</button>
+              <li><h6 class="dropdown-header py-0 ps-2">chart type</h6></li>
+              <li>
+                <div class="btn-group ms-2 mt-2" role="group">
+                  <button type="button" class="btn btn-outline-primary btn-sm" id="${this.containerId}-lineChartBtn">Line</button>
+                  <button type="button" class="btn btn-outline-primary btn-sm" id="${this.containerId}-barChartBtn">Bar</button>
+                </div>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <div class="form-check form-switch ms-2">
+                  <input class="form-check-input" type="checkbox" id="mySwitch" name="darkmode" value="yes">
+                  <label class="form-check-label" for="mySwitch">auto update</label>
+                </div>
+                <div class="ms-2 mt-2 d-flex align-items-center" id="updateIntervalContainer" style="display: none;">
+                  <label for="updateInterval" class="form-label me-2 mb-0" style="font-size: 0.9rem;">Interval (sec):</label>
+                  <input type="number" id="updateInterval" class="form-control form-control-sm" style="width: 64px;" min="1" value="180">
+                </div>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li><button class="dropdown-item" id="${this.containerId}-downloadImage"><i class="fa-solid fa-download text-secondary"></i> download Image</button></li>
+              <li><button class="dropdown-item" id="${this.containerId}-downloadData"><i class="fa-solid fa-download text-secondary"></i> download Data</button></li>
             </div>
 
           </div>
@@ -211,6 +230,24 @@ export class QueryCard {
         })
         this.chart.setOption(this.option);
       }
+    });
+
+    // 切換圖表類型
+    const barChartBtn = this.cardElement.querySelector(`#${this.containerId}-barChartBtn`);
+    const lineChartBtn = this.cardElement.querySelector(`#${this.containerId}-lineChartBtn`);
+    barChartBtn.addEventListener('click', () => {
+      this.option.series.forEach((dataSet)=>{
+        dataSet.type = "bar"
+        dataSet.boundaryGap = true
+      })
+      this.chart.setOption(this.option);
+    });
+    lineChartBtn.addEventListener('click', () => {
+      this.option.series.forEach((dataSet)=>{
+        dataSet.type = "line"
+        dataSet.boundaryGap = false
+      })
+      this.chart.setOption(this.option);
     });
 
     // 初始化echart
