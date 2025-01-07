@@ -61,7 +61,7 @@ export class QueryCard {
         {
           type: "category",
           data: [],
-          boundaryGap:false,
+          boundaryGap: type.toLowerCase() === "line" ? false : true,
           axisPointer: {
             shadowStyle: {
               color: "rgba(0, 0, 0, 0.08)", // 自定義陰影顏色
@@ -89,20 +89,32 @@ export class QueryCard {
       return;
     }
 
-    // 创建卡片结构
+    // 創建卡片結構
     this.cardElement = document.createElement('div');
     this.cardElement.className = 'query-card card shadow-sm';
     Object.assign(this.cardElement.style, this.styles);
 
     this.cardElement.innerHTML = `
       <div class="card-header py-1">
-        <div class="row g-3 align-items-center justify-content-between">
+        <div class="row align-items-center justify-content-between">
           <div class="col-auto">
             <div class="col-form-label fw-bold">${this.title}</div>
           </div>
           <div class="col-auto d-flex align-items-center gap-2">
             <div>
-              <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off">
+              <select id="${this.containerId}-timeUnit" class="form-select form-select-sm">
+                <option value="day">日</option>
+                <option value="month">月</option>
+              </select>
+            </div>
+            <div>
+              <input type="date" id="${this.containerId}-date" value="${new Date().toISOString().split('T')[0]}" class="form-control form-control-sm">
+            </div>
+            <div style="display: none">
+              <input type="month" id="${this.containerId}-month" class="form-control form-control-sm">
+            </div>
+            <div>
+              <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off" ${this.stack ? "checked" : ""}>
               <label class="btn btn-sm border-0 btn-outline-secondary" for="${this.containerId}-isStack"><i class="fa-solid fa-layer-group"></i></label><br>
             </div>
             <div class="btn-group btn-group-sm" role="group" aria-label="Toggle Chart and Table">
@@ -211,7 +223,7 @@ export class QueryCard {
     // 響應式RWD
     window.addEventListener('resize', () => {
       if (window.innerWidth < 992) {
-        this.option.grid.top = '0';
+        this.option.grid.top = '8';
         this.option.grid.bottom = '48';
         this.option.legend.top = "bottom"
       } else {
@@ -222,6 +234,7 @@ export class QueryCard {
       this.chart.setOption(this.option); // 設定圖表選項
       this.chart.resize(); // 調整圖表大小
     });
+    window.dispatchEvent(new Event('resize')); //手動觸發一次
   }
 
   // 更新卡片資料
