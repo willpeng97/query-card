@@ -8,7 +8,7 @@ export class QueryCard {
     TABLE_NAME,
     containerId,
     category,
-    fields=[],
+    seriesFields=[],
     title="Query Card",
     type="line",
     stack=false,
@@ -23,7 +23,7 @@ export class QueryCard {
     this.title = title; // 標題
     this.cardElement = null; // 儲存卡片元素
     this.category = category
-    this.fields = fields;
+    this.seriesFields = seriesFields;
     this.type = type;
     this.stack = stack;
     this.styles = styles; // 卡片樣式
@@ -282,13 +282,13 @@ export class QueryCard {
   }
 
   dataProcessing(gridData){
-    // const fields = Object.keys(gridData[0]).filter(key => key !== this.category);
+    // const seriesFields = Object.keys(gridData[0]).filter(key => key !== this.category);
     const colors = ["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#FF9F40",
             "#D83F87","#00B3A9","#2E97FF","#EAC435","#6A4C93","#EF6C00",];
   
     let chartData = {
       xAxisData:gridData.map(row => row[this.category]),
-      seriesData:this.fields.map((field, index) => {
+      seriesData:this.seriesFields.map((field, index) => {
         return {
           name: field, // 設定系列名稱
           type: this.type,

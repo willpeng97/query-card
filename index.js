@@ -7,10 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     SID: "352547489510325",
     containerId: "cardWrapper1",
     category: "CHECK_IN_TIME",
-    fields: ["NG_CODE_QTY"],
+    seriesFields: ["NG_CODE_QTY"],
     styles: { height: "500px"}
   });
-  card1.init()
+  // card1.init()
 
   // type2. Function Table查詢
   window.card2 = new QueryCard({
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱
     containerId: "cardWrapper2",
     category: "REPORT_TIME", //x軸欄位
-    fields: ["RK10","RK4","RK5","RK6","RK7","RK9","SP1000","SP1001","SP150","SP500","SP503"], //y軸欄位
+    seriesFields: ["RK10","RK4","RK5","RK6","RK7","RK9","SP1000","SP1001","SP150","SP500","SP503"], //y軸欄位
     styles: { height: "400px"} //卡片最外層元素的樣式，必須定義高度不然會掛
   });
 
