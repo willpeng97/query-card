@@ -2,7 +2,7 @@
 const offlineMode = false //使用本地資料測試 mockData.json
 
 export class QueryCard {
-  constructor({ 
+  constructor({
     SID,
     isFuncTable = false,
     TABLE_NAME,
@@ -113,7 +113,7 @@ export class QueryCard {
             <div style="display: none">
               <input type="month" id="${this.containerId}-month" class="form-control form-control-sm">
             </div>
-            <div>
+            <div style="display:${this.seriesFields.length <= 1 ? "none" : ""}">
               <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off" ${this.stack ? "checked" : ""}>
               <label class="btn btn-sm border-0 btn-outline-secondary" for="${this.containerId}-isStack"><i class="fa-solid fa-layer-group"></i></label><br>
             </div>
@@ -160,12 +160,12 @@ export class QueryCard {
               <li><hr class="dropdown-divider"></li>
               <li>
                 <div class="form-check form-switch ms-2">
-                  <input class="form-check-input" type="checkbox" id="mySwitch" name="darkmode" value="yes">
-                  <label class="form-check-label" for="mySwitch">auto update</label>
+                  <input class="form-check-input" type="checkbox" id="${this.containerId}-isAutoUpdate" name="darkmode" value="yes">
+                  <label class="form-check-label" for="${this.containerId}-isAutoUpdate">auto update</label>
                 </div>
                 <div class="ms-2 mt-2 d-flex align-items-center" id="updateIntervalContainer" style="display: none;">
                   <label for="updateInterval" class="form-label me-2 mb-0" style="font-size: 0.9rem;">Interval (sec):</label>
-                  <input type="number" id="updateInterval" class="form-control form-control-sm" style="width: 64px;" min="1" value="180">
+                  <input type="number" id="${this.containerId}-updateInterval" class="form-control form-control-sm shadow-none" style="width: 64px;" min="1" value="30">
                 </div>
               </li>
               <li><hr class="dropdown-divider"></li>
@@ -223,12 +223,14 @@ export class QueryCard {
           dataSet.areaStyle.opacity = 0.3
         })
         this.chart.setOption(this.option);
+        this.stack = true
       }else{
         this.option.series.forEach((dataSet)=>{
           dataSet.stack = null
           dataSet.areaStyle.opacity = 0.1
         })
         this.chart.setOption(this.option);
+        this.stack = false
       }
     });
 
@@ -240,8 +242,8 @@ export class QueryCard {
         dataSet.type = "bar"
       })
       this.option.xAxis[0].boundaryGap = true
-
       this.chart.setOption(this.option);
+      this.type = "bar" //保存物件屬性
     });
     lineChartBtn.addEventListener('click', () => {
       this.option.series.forEach((dataSet)=>{
@@ -249,6 +251,29 @@ export class QueryCard {
       })
       this.option.xAxis[0].boundaryGap = false
       this.chart.setOption(this.option);
+      this.type = "line" //保存物件屬性
+    });
+
+    // 切換自動更新
+    const isAutoUpdate = this.cardElement.querySelector(`#${this.containerId}-isAutoUpdate`);
+    const updateInterval = this.cardElement.querySelector(`#${this.containerId}-updateInterval`);
+    let autoUpdateInterval = null
+    isAutoUpdate.addEventListener('change', () => {
+      if (isAutoUpdate.checked) {
+        autoUpdateInterval = setInterval(()=>{
+          this.update()
+        },updateInterval.value * 1000)
+      } else {
+        clearTimeout(autoUpdateInterval)
+      }
+    });
+    updateInterval.addEventListener('change', () => {
+      if (isAutoUpdate.checked) {
+        clearTimeout(autoUpdateInterval)
+        autoUpdateInterval = setInterval(()=>{
+          this.update()
+        },updateInterval.value * 1000)
+      }
     });
 
     // 初始化echart
