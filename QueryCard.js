@@ -1,12 +1,14 @@
 // 依賴套件: echart、bootstrap(bundle)，若html中沒有引用就會掛
-const offlineMode = true //使用本地資料測試 mockData.json
+const offlineMode = false //使用本地資料測試 mockData.json
 
 export class QueryCard {
   constructor({ 
     SID,
+    isFuncTable = false,
     TABLE_NAME,
     containerId,
     category,
+    fields=[],
     title="Query Card",
     type="line",
     stack=false,
@@ -14,6 +16,7 @@ export class QueryCard {
   })
   {
     this.SID = SID;
+    this.isFuncTable = isFuncTable
     this.TABLE_NAME = TABLE_NAME;
     this.containerId = containerId; // 容器ID
     this.chart = null;
@@ -21,15 +24,16 @@ export class QueryCard {
     this.cardElement = null; // 儲存卡片元素
     this.cardData = null; // 卡片資料
     this.category = category
+    this.fields = fields;
     this.type = type;
     this.stack = stack;
     this.styles = styles; // 卡片樣式
     this.option = {
       grid: {
-        top: "10%",
-        left: "1%",
-        right: "1%",
-        bottom: "0%",
+        top: "48",
+        left: "8",
+        right: "8",
+        bottom: "0",
         containLabel: true,
       },
       tooltip: {
@@ -76,6 +80,7 @@ export class QueryCard {
       ],
       series: []
     };
+    this.gridData = null
   }
 
   // 初始化卡片
@@ -142,7 +147,7 @@ export class QueryCard {
           </div>
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body pt-1">
         <div id="${this.containerId}-content" class="h-100">
           <div id="${this.containerId}-chart" class="h-100"></div>
           <div id="${this.containerId}-table" style="display: none;">
@@ -231,10 +236,14 @@ export class QueryCard {
     this.chart.showLoading()
 
     // 2. call API 取得資料
-    const gridData = await this.fetchData()
+    if (this.isFuncTable){
+      this.gridData = await this.getFuncGrid()
+    } else {
+      this.gridData = await this.getGrid()
+    }
 
     // 3. 處理成echart格式
-    const chartData = this.dataProcessing(gridData)
+    const chartData = this.dataProcessing()
 
     // 4. 更新圖表
     this.option.xAxis[0].data = chartData.xAxisData;
@@ -245,14 +254,14 @@ export class QueryCard {
     this.chart.hideLoading()
   }
 
-  dataProcessing(gridData){
-    const fields = Object.keys(gridData[0]).filter(key => key !== this.category);
+  dataProcessing(){
+    // const fields = Object.keys(gridData[0]).filter(key => key !== this.category);
     const colors = ["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#FF9F40",
             "#D83F87","#00B3A9","#2E97FF","#EAC435","#6A4C93","#EF6C00",];
   
     let chartData = {
-      xAxisData:gridData.map(row => row[this.category]),
-      seriesData:fields.map((field, index) => {
+      xAxisData:this.gridData.map(row => row[this.category]),
+      seriesData:this.fields.map((field, index) => {
         return {
           name: field, // 設定系列名稱
           type: this.type,
@@ -269,7 +278,7 @@ export class QueryCard {
             color: colors[index % colors.length], // 設置區域顏色，可以和 line 顏色一致
             opacity: 0.3, // 調整區域透明度
           },
-          data: gridData.map(row => row[field]), // 提取該欄位的數據
+          data: this.gridData.map(row => row[field]), // 提取該欄位的數據
         };
       })
     }
@@ -278,7 +287,65 @@ export class QueryCard {
   }
 
   // API取得數據
-  async fetchData() {
+  // 1. 一般查詢 (GetGrid)
+  async getGrid() {
+    if (offlineMode){
+      let mockData = await fetch("./mockData.json")
+        .then((response)=>{
+          return response.json()
+        })
+        .then((data)=>{
+          return data
+        })
+      return mockData
+    }
+
+    let getGridURL = window.location.protocol+'//localhost/DCMATE_MEMS_API/api/GetGrid';
+    // let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetFunctionGrid';
+
+    let headers = new Headers({
+        'Content-Type': 'application/json',
+        'SID': this.SID,
+        'TokenKey': "WEYU54226552"
+        // 可以添加其他必要的请求头信息
+    });
+  
+    let conditions = {
+      // "Field": [],
+      // "Oper": [],
+      // "Value": []
+    }
+
+    // 构建请求体
+    let requestBody = JSON.stringify(conditions);
+  
+    // 构建请求配置
+    let requestOptions = {
+        method: 'POST', // 将请求方法设置为 "POST"
+        headers: headers,
+        body: requestBody // 将条件参数放入请求体
+    };
+  
+    try {
+        // 发送请求并等待响应
+        let response = await fetch(getGridURL, requestOptions);
+  
+        if (response.ok) {
+            // 解析响应为 JSON
+            let data = await response.json();
+            // console.log("获取Grid数据成功:", data);
+            if(data.result){
+                return data.Grid_Data;
+            }
+        } else {
+            throw new Error('获取Grid数据失败，状态码：' + response.status);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+  }
+  // 2. function查詢 (GetFunctionGrid)
+  async getFuncGrid() {
     if (offlineMode){
       let mockData = await fetch("./mockData.json")
         .then((response)=>{

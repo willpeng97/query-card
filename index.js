@@ -5,25 +5,27 @@ document.addEventListener("DOMContentLoaded", () => {
   window.card1 = new QueryCard({
     title: "Query Card 1",
     SID: "366647515707003", //智能查詢SID，必須用資料表函式
+    isFuncTable: true,
     TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱
     containerId: "cardWrapper1",
     category: "REPORT_TIME", //x軸欄位
+    fields: ["RK10","RK5"], //y軸欄位
     styles: { height: "400px"} //卡片最外層元素的樣式，必須定義高度不然會掛
   });
 
   // 初始化實例
-  card1.init()
+  // card1.init()
 
 
 
   // 建立更多...
   window.card2 = new QueryCard({
     title: "Query Card 2",
-    SID: "366647515707003",
-    TABLE_NAME: "GET_GAS_CHART_DATA",
+    SID: "352547489510325",
     containerId: "cardWrapper2",
-    category: "REPORT_TIME",
-    styles: { height: "400px"}
+    category: "CHECK_IN_TIME",
+    fields: ["NG_CODE_QTY"],
+    styles: { height: "300px"}
   });
   card2.init()
 });
