@@ -238,15 +238,16 @@ export class QueryCard {
     barChartBtn.addEventListener('click', () => {
       this.option.series.forEach((dataSet)=>{
         dataSet.type = "bar"
-        dataSet.boundaryGap = true
       })
+      this.option.xAxis[0].boundaryGap = true
+
       this.chart.setOption(this.option);
     });
     lineChartBtn.addEventListener('click', () => {
       this.option.series.forEach((dataSet)=>{
         dataSet.type = "line"
-        dataSet.boundaryGap = false
       })
+      this.option.xAxis[0].boundaryGap = false
       this.chart.setOption(this.option);
     });
 
