@@ -1,4 +1,4 @@
-// 依賴套件: echart、bootstrap(bundle)，若html中沒有引用就會掛
+// 依賴套件: echart、bootstrap(bundle)、xlsx.full，若html中沒有引用就會掛
 const offlineMode = false //使用本地資料測試 mockData.json
 
 export class QueryCard {
@@ -102,8 +102,8 @@ export class QueryCard {
           </div>
           <div class="col-auto d-flex align-items-center gap-2">
             <div>
-              <input type="checkbox" class="btn-check" id="${this.containerId}-isStackBtn" autocomplete="off">
-              <label class="btn btn-sm border-0 btn-outline-secondary" for="${this.containerId}-isStackBtn"><i class="fa-solid fa-layer-group"></i></label><br>
+              <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off">
+              <label class="btn btn-sm border-0 btn-outline-secondary" for="${this.containerId}-isStack"><i class="fa-solid fa-layer-group"></i></label><br>
             </div>
             <div class="btn-group btn-group-sm" role="group" aria-label="Toggle Chart and Table">
               <input 
@@ -137,9 +137,9 @@ export class QueryCard {
             >
               <i class="fas fa-ellipsis-v"></i>
             </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownId">
-              <a class="dropdown-item" href="#" id="downloadImageBtn"><i class="fa-solid fa-download text-secondary"></i> download Image</a>
-              <a class="dropdown-item" href="#" id="downloadXlsxBtn"><i class="fa-solid fa-download text-secondary"></i> download Data</a>
+            <div class="dropdown-menu" aria-labelledby="dropdownId" style="z-index:9999">
+              <button class="dropdown-item" id="${this.containerId}-downloadImage"><i class="fa-solid fa-download text-secondary"></i> download Image</button>
+              <button class="dropdown-item" id="${this.containerId}-downloadData"><i class="fa-solid fa-download text-secondary"></i> download Data</button>
             </div>
 
           </div>
@@ -148,7 +148,7 @@ export class QueryCard {
       <div class="card-body pt-1">
         <div id="${this.containerId}-content" class="h-100">
           <div id="${this.containerId}-chart" class="h-100"></div>
-          <div id="${this.containerId}-table" class="overflow-auto" style="display: none; height:calc(${this.cardElement.style.height} - 64px)"></div>
+          <div id="${this.containerId}-tableWrapper" class="overflow-auto" style="display: none; height:calc(${this.cardElement.style.height} - 64px)"></div>
         </div>
       </div>
     `;
@@ -161,7 +161,7 @@ export class QueryCard {
     const chartRadio = this.cardElement.querySelector(`#${this.containerId}-chartRadio`);
     const tableRadio = this.cardElement.querySelector(`#${this.containerId}-tableRadio`);
     const chartElement = this.cardElement.querySelector(`#${this.containerId}-chart`);
-    const tableElement = this.cardElement.querySelector(`#${this.containerId}-table`);
+    const tableElement = this.cardElement.querySelector(`#${this.containerId}-tableWrapper`);
 
     chartRadio.addEventListener('change', () => {
       if (chartRadio.checked) {
@@ -177,6 +177,29 @@ export class QueryCard {
       }
     });
 
+    // 下載按鈕
+    const downloadImage = this.cardElement.querySelector(`#${this.containerId}-downloadImage`);
+    const downloadData = this.cardElement.querySelector(`#${this.containerId}-downloadData`);
+    downloadImage.addEventListener('click', () => this.downloadImage());
+    downloadData.addEventListener('click', () => this.downloadXlsx());
+
+    // 切換堆疊按鈕
+    const isStack = this.cardElement.querySelector(`#${this.containerId}-isStack`);
+    isStack.addEventListener('click', () => {
+      if(isStack.checked){
+        this.option.series.forEach((dataSet)=>{
+          dataSet.stack = "stacked"
+          dataSet.areaStyle.opacity = 0.3
+        })
+        this.chart.setOption(this.option);
+      }else{
+        this.option.series.forEach((dataSet)=>{
+          dataSet.stack = null
+          dataSet.areaStyle.opacity = 0.1
+        })
+        this.chart.setOption(this.option);
+      }
+    });
 
     // 初始化echart
     const chartWrapper = document.getElementById(`${this.containerId}-chart`)
@@ -188,12 +211,12 @@ export class QueryCard {
     // 響應式RWD
     window.addEventListener('resize', () => {
       if (window.innerWidth < 992) {
-        this.option.grid.top = '0%';
-        this.option.grid.bottom = '15%';
+        this.option.grid.top = '0';
+        this.option.grid.bottom = '48';
         this.option.legend.top = "bottom"
       } else {
-        this.option.grid.top = '10%';
-        this.option.grid.bottom = '0%';
+        this.option.grid.top = '48';
+        this.option.grid.bottom = '0';
         this.option.legend.top = "top"
       }
       this.chart.setOption(this.option); // 設定圖表選項
@@ -234,13 +257,13 @@ export class QueryCard {
   }
 
   setTable(gridData) {
-    const tableWrapper = document.getElementById(`${this.containerId}-table`);
+    const tableWrapper = document.getElementById(`${this.containerId}-tableWrapper`);
     tableWrapper.innerHTML = ''; // 清空容器內容
     
     // 動態生成表格標題
     const columns = Object.keys(gridData[0]); //取得所有欄位名
     const table = `
-      <table class="table table-sm mb-0">
+      <table id="${this.containerId}-table" class="table table-sm mb-0">
         <thead class="sticky-top">
           <tr>
             ${columns.map((column) => `<th>${column}</th>`).join('')}
@@ -269,7 +292,7 @@ export class QueryCard {
         return {
           name: field, // 設定系列名稱
           type: this.type,
-          stack: this.stack,
+          stack: this.stack ? "stacked" : null,
           smooth: true,
           barGap: 0,
           emphasis: {
@@ -280,7 +303,7 @@ export class QueryCard {
           },
           areaStyle: {
             color: colors[index % colors.length], // 設置區域顏色，可以和 line 顏色一致
-            opacity: 0.3, // 調整區域透明度
+            opacity: this.stack ? 0.3 : 0.1, // 調整區域透明度
           },
           data: gridData.map(row => row[field]), // 提取該欄位的數據
         };
@@ -409,5 +432,46 @@ export class QueryCard {
     } catch (error) {
         console.error(error);
     }
+  }
+
+  // 匯出資料
+  downloadImage() {
+    const url = this.chart.getDataURL({
+      type: 'png', // 圖片格式
+      pixelRatio: 2, // 圖片解析度
+      backgroundColor: '#fff', // 背景顏色
+    });
+  
+    // 創建一個隱藏的 a 標籤
+    const link = document.createElement('a');
+    link.href = url;
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+    link.download = `chart_${formattedDate}.png`; // 圖片名稱
+    link.click();
+  }
+  downloadXlsx() {
+    // 取得表格元素
+    const table = document.getElementById(`${this.containerId}-table`);
+    
+    // 將表格轉換為工作簿物件
+    const wb = XLSX.utils.table_to_book(table, { raw: true });
+  
+    // 遍歷所有的工作表並設定數字格式
+    Object.keys(wb.Sheets).forEach(sheetName => {
+      const ws = wb.Sheets[sheetName];
+      Object.keys(ws).forEach(cellAddress => {
+      if (ws[cellAddress].t === 's' && !isNaN(ws[cellAddress].v)) {
+        // 如果儲存格是字串類型且內容是數字，轉為數字格式
+        ws[cellAddress].t = 'n';
+        ws[cellAddress].v = parseFloat(ws[cellAddress].v);
+      }
+      });
+    });
+  
+    // 將工作簿保存為檔案
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+    XLSX.writeFile(wb, `data_${formattedDate}.xlsx`);
   }
 }
