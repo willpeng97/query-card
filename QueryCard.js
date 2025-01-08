@@ -371,24 +371,28 @@ export class QueryCard {
     tableWrapper.innerHTML = ''; // 清空容器內容
     
     // 動態生成表格標題
-    const columns = Object.keys(gridData[0]); //取得所有欄位名
-    const table = `
-      <table id="${this.containerId}-table" class="table table-sm mb-0">
-        <thead class="sticky-top">
-          <tr>
-            ${columns.map((column) => `<th>${column}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${gridData.map((row) => `
+    try{
+      const columns = Object.keys(gridData[0]); //取得所有欄位名
+      const table = `
+        <table id="${this.containerId}-table" class="table table-sm mb-0">
+          <thead class="sticky-top">
             <tr>
-              ${columns.map((column)=>`<td>${row[column]}</td>`).join('')}
+              ${columns.map((column) => `<th>${column}</th>`).join('')}
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `
-    tableWrapper.innerHTML = table;
+          </thead>
+          <tbody>
+            ${gridData.map((row) => `
+              <tr>
+                ${columns.map((column)=>`<td>${row[column]}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `
+      tableWrapper.innerHTML = table;
+    }catch{
+      tableWrapper.innerHTML = `<div>No Data</div>`
+    }
   }
 
   dataProcessing(gridData){
