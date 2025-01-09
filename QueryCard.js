@@ -107,8 +107,8 @@ export class QueryCard {
     cardElement.innerHTML = `
       <div class="card-header py-1">
         <div class="row align-items-center justify-content-between">
-          <div class="col-auto px-1">
-            <div class="col-form-label fw-bold">${this.title}</div>
+          <div class="col-2 col-md-auto px-1">
+            <div class="col-form-label fw-bold text-truncate" title="${this.title}">${this.title}</div>
           </div>
           <div class="col-auto d-flex align-items-center gap-2 px-1">
             <div>
