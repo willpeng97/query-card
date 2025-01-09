@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     queryDate: "2024-10-09", // 查詢日期，預設為當日
     // tableOnly: true, // 是否只顯示table
   });
-  card1.init()
 
   // type2. Function Table查詢
   window.card2 = new QueryCard({
@@ -30,6 +29,4 @@ document.addEventListener("DOMContentLoaded", () => {
     timeUnit: "month",
     queryMonth: "2024-11",
   });
-
-  // card2.init()
 });

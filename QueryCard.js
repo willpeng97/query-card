@@ -88,6 +88,7 @@ export class QueryCard {
       ],
       series: []
     };
+    this.init();
   }
 
   // 初始化卡片
