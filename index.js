@@ -9,7 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     category: "CHECK_IN_TIME",
     seriesFields: ["NG_CODE_QTY"],
     styles: { height: "500px"},
-    // timeUnit: "month",
+    timeUnit: "day",
+    queryDate: "2024-10-09"
+    // tableOnly: true,
   });
   card1.init()
 
@@ -19,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     title: "Query Card 2",
     SID: "366647515707003", //智能查詢SID，必須用資料表函式
     isFuncTable: true, //是否為資料表函式
+    tableOnly: true,
     TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱(若isFuncTable則必須填)
     category: "REPORT_TIME", //x軸欄位
     seriesFields: ["RK10","RK4","RK5","RK6","RK7","RK9","SP1000","SP1001","SP150","SP500","SP503"], //y軸欄位

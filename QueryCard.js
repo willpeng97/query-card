@@ -1,5 +1,7 @@
 // 依賴套件: echart、bootstrap(bundle)、xlsx.full，若html中沒有引用就會掛
 const offlineMode = false //使用本地資料測試 mockData.json
+const default_ip = window.default_ip || "localhost";
+const default_Api_Name = window.default_Api_Name || "DCMATE_MEMS_API"
 
 export class QueryCard {
   constructor({
@@ -10,6 +12,7 @@ export class QueryCard {
     category,
     seriesFields=[],
     title="Query Card",
+    tableOnly=false,
     type="line",
     stack=false,
     timeUnit="day",
@@ -24,9 +27,9 @@ export class QueryCard {
     this.containerId = containerId; // 容器ID
     this.chart = null;
     this.title = title; // 標題
-    this.cardElement = null; // 儲存卡片元素
     this.category = category
     this.seriesFields = seriesFields;
+    this.tableOnly = tableOnly;
     this.type = type.toLowerCase();
     this.stack = stack;
     this.timeUnit = timeUnit.toLowerCase()
@@ -96,11 +99,11 @@ export class QueryCard {
     }
 
     // 創建卡片結構
-    this.cardElement = document.createElement('div');
-    this.cardElement.className = 'query-card card shadow-sm';
-    Object.assign(this.cardElement.style, this.styles);
+    let cardElement = document.createElement('div');
+    cardElement.className = 'query-card card shadow-sm';
+    Object.assign(cardElement.style, this.styles);
 
-    this.cardElement.innerHTML = `
+    cardElement.innerHTML = `
       <div class="card-header py-1">
         <div class="row align-items-center justify-content-between">
           <div class="col-auto">
@@ -119,11 +122,11 @@ export class QueryCard {
             <div style="display: ${this.timeUnit === "month" ? "" : "none"}">
               <input type="month" id="${this.containerId}-queryMonthInput" value="${this.queryMonth}" class="form-control form-control-sm">
             </div>
-            <div style="display:${this.seriesFields.length <= 1 ? "none" : ""}">
+            <div style="display:${this.seriesFields.length <= 1|this.tableOnly ? "none" : ""}">
               <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off" ${this.stack ? "checked" : ""}>
               <label class="btn btn-sm border-0 btn-outline-secondary" for="${this.containerId}-isStack"><i class="fa-solid fa-layer-group"></i></label><br>
             </div>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Toggle Chart and Table">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Toggle Chart and Table" style="display:${this.tableOnly ? "none" : ""}">
               <input 
                 type="radio" 
                 class="btn-check" 
@@ -156,14 +159,14 @@ export class QueryCard {
               <i class="fas fa-ellipsis-v"></i>
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownId" style="z-index:9999">
-              <li><h6 class="dropdown-header py-0 ps-2">chart type</h6></li>
-              <li>
+              <li style="display: ${this.tableOnly ? "none" : ""}"><h6 class="dropdown-header py-0 ps-2">chart type</h6></li>
+              <li style="display: ${this.tableOnly ? "none" : ""}">
                 <div class="btn-group ms-2 mt-2" role="group">
                   <button type="button" class="btn btn-outline-primary btn-sm" id="${this.containerId}-lineChartBtn">Line</button>
                   <button type="button" class="btn btn-outline-primary btn-sm" id="${this.containerId}-barChartBtn">Bar</button>
                 </div>
               </li>
-              <li><hr class="dropdown-divider"></li>
+              <li style="display: ${this.tableOnly ? "none" : ""}"><hr class="dropdown-divider"></li>
               <li>
                 <div class="form-check form-switch ms-2">
                   <input class="form-check-input" type="checkbox" id="${this.containerId}-isAutoUpdate" name="darkmode" value="yes">
@@ -171,11 +174,11 @@ export class QueryCard {
                 </div>
                 <div class="ms-2 mt-2 d-flex align-items-center" id="updateIntervalContainer" style="display: none;">
                   <label for="updateInterval" class="form-label me-2 mb-0" style="font-size: 0.9rem;">Interval (sec):</label>
-                  <input type="number" id="${this.containerId}-updateInterval" class="form-control form-control-sm shadow-none" style="width: 64px;" min="1" value="30">
+                  <input type="number" id="${this.containerId}-updateInterval" class="form-control form-control-sm shadow-none" style="width: 60px;" min="1" value="30">
                 </div>
               </li>
               <li><hr class="dropdown-divider"></li>
-              <li><button class="dropdown-item" id="${this.containerId}-downloadImage"><i class="fa-solid fa-download text-secondary"></i> download Image</button></li>
+              <li style="display: ${this.tableOnly ? "none" : ""}"><button class="dropdown-item" id="${this.containerId}-downloadImage"><i class="fa-solid fa-download text-secondary"></i> download Image</button></li>
               <li><button class="dropdown-item" id="${this.containerId}-downloadData"><i class="fa-solid fa-download text-secondary"></i> download Data</button></li>
             </div>
 
@@ -184,20 +187,20 @@ export class QueryCard {
       </div>
       <div class="card-body pt-1">
         <div id="${this.containerId}-content" class="h-100">
-          <div id="${this.containerId}-chart" class="h-100"></div>
-          <div id="${this.containerId}-tableWrapper" class="overflow-auto" style="display: none; height:calc(${this.cardElement.style.height} - 64px)"></div>
+          <div id="${this.containerId}-chart" class="h-100" style="display: ${this.tableOnly ? "none" : ""}"></div>
+          <div id="${this.containerId}-tableWrapper" class="overflow-auto" style="display: ${this.tableOnly ? "" : "none"}; height:calc(${cardElement.style.height} - 64px)"></div>
         </div>
       </div>
     `;
 
     
     // 將卡片插入到容器
-    container.appendChild(this.cardElement);
+    container.appendChild(cardElement);
 
     // 切換時間
-    const timeUnitInput = this.cardElement.querySelector(`#${this.containerId}-timeUnitInput`);
-    const queryDateInput = this.cardElement.querySelector(`#${this.containerId}-queryDateInput`);
-    const queryMonthInput = this.cardElement.querySelector(`#${this.containerId}-queryMonthInput`);
+    const timeUnitInput = cardElement.querySelector(`#${this.containerId}-timeUnitInput`);
+    const queryDateInput = cardElement.querySelector(`#${this.containerId}-queryDateInput`);
+    const queryMonthInput = cardElement.querySelector(`#${this.containerId}-queryMonthInput`);
     timeUnitInput.addEventListener('change', () => {
       this.timeUnit = timeUnitInput.value
       switch(this.timeUnit){
@@ -222,10 +225,10 @@ export class QueryCard {
     });
 
     // 切換圖or表
-    const chartRadio = this.cardElement.querySelector(`#${this.containerId}-chartRadio`);
-    const tableRadio = this.cardElement.querySelector(`#${this.containerId}-tableRadio`);
-    const chartElement = this.cardElement.querySelector(`#${this.containerId}-chart`);
-    const tableElement = this.cardElement.querySelector(`#${this.containerId}-tableWrapper`);
+    const chartRadio = cardElement.querySelector(`#${this.containerId}-chartRadio`);
+    const tableRadio = cardElement.querySelector(`#${this.containerId}-tableRadio`);
+    const chartElement = cardElement.querySelector(`#${this.containerId}-chart`);
+    const tableElement = cardElement.querySelector(`#${this.containerId}-tableWrapper`);
 
     chartRadio.addEventListener('change', () => {
       if (chartRadio.checked) {
@@ -242,13 +245,13 @@ export class QueryCard {
     });
 
     // 下載按鈕
-    const downloadImage = this.cardElement.querySelector(`#${this.containerId}-downloadImage`);
-    const downloadData = this.cardElement.querySelector(`#${this.containerId}-downloadData`);
+    const downloadImage = cardElement.querySelector(`#${this.containerId}-downloadImage`);
+    const downloadData = cardElement.querySelector(`#${this.containerId}-downloadData`);
     downloadImage.addEventListener('click', () => this.downloadImage());
     downloadData.addEventListener('click', () => this.downloadXlsx());
 
     // 切換堆疊按鈕
-    const isStack = this.cardElement.querySelector(`#${this.containerId}-isStack`);
+    const isStack = cardElement.querySelector(`#${this.containerId}-isStack`);
     isStack.addEventListener('click', () => {
       if(isStack.checked){
         this.option.series.forEach((dataSet)=>{
@@ -269,8 +272,8 @@ export class QueryCard {
 
 
     // 切換圖表類型
-    const barChartBtn = this.cardElement.querySelector(`#${this.containerId}-barChartBtn`);
-    const lineChartBtn = this.cardElement.querySelector(`#${this.containerId}-lineChartBtn`);
+    const barChartBtn = cardElement.querySelector(`#${this.containerId}-barChartBtn`);
+    const lineChartBtn = cardElement.querySelector(`#${this.containerId}-lineChartBtn`);
     barChartBtn.addEventListener('click', () => {
       this.option.series.forEach((dataSet)=>{
         dataSet.type = "bar"
@@ -289,8 +292,8 @@ export class QueryCard {
     });
 
     // 切換自動更新
-    const isAutoUpdate = this.cardElement.querySelector(`#${this.containerId}-isAutoUpdate`);
-    const updateInterval = this.cardElement.querySelector(`#${this.containerId}-updateInterval`);
+    const isAutoUpdate = cardElement.querySelector(`#${this.containerId}-isAutoUpdate`);
+    const updateInterval = cardElement.querySelector(`#${this.containerId}-updateInterval`);
     let autoUpdateInterval = null
     isAutoUpdate.addEventListener('change', () => {
       if (isAutoUpdate.checked) {
@@ -354,13 +357,15 @@ export class QueryCard {
     // 3. 更新表格
     this.setTable(gridData)
 
-    // 4. 處理成echart格式
-    const chartData = this.dataProcessing(gridData)
-
-    // 5. 更新圖表
-    this.option.xAxis[0].data = chartData.xAxisData;
-    this.option.series = chartData.seriesData;
-    this.chart.setOption(this.option);
+    if(!this.tableOnly){
+      // 4. 處理成echart格式
+      const chartData = this.dataProcessing(gridData)
+  
+      // 5. 更新圖表
+      this.option.xAxis[0].data = chartData.xAxisData;
+      this.option.series = chartData.seriesData;
+      this.chart.setOption(this.option);
+    }
 
     // 6. 關閉loading畫面
     this.chart.hideLoading()
@@ -441,8 +446,7 @@ export class QueryCard {
       return mockData
     }
 
-    let getGridURL = window.location.protocol+'//localhost/DCMATE_MEMS_API/api/GetGrid';
-    // let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetFunctionGrid';
+    let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetGrid';
 
     let headers = new Headers({
         'Content-Type': 'application/json',
@@ -513,8 +517,7 @@ export class QueryCard {
       return mockData
     }
 
-    let getGridURL = window.location.protocol+'//localhost/DCMATE_MEMS_API/api/GetFunctionGrid';
-    // let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetFunctionGrid';
+    let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetFunctionGrid';
 
     let headers = new Headers({
         'Content-Type': 'application/json',
