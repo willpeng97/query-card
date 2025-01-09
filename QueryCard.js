@@ -445,9 +445,9 @@ export class QueryCard {
         // 取得這個月的第一天
         const firstDayThisMonth = new Date(`${this.queryMonth}-01`); // "2024-01-01"
         // 取得下個月的第一天
-        const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 1); // "2024-02-01"
+        const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 0); // "2024-02-01"
         const startTime = firstDayThisMonth.toLocaleString('en-ca').split(',')[0]
-        const endTime = firstDayNextMonth.toLocaleString('en-ca').split(',')[0]
+        const endTime = firstDayNextMonth.toLocaleString('en-ca').split(',')[0] + " 23:59:59"
 
         conditions = {
           "Field": [this.category],
