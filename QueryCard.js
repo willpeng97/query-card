@@ -188,7 +188,11 @@ export class QueryCard {
       <div class="card-body pt-1">
         <div id="${this.containerId}-content" class="h-100">
           <div id="${this.containerId}-chart" class="h-100" style="display: ${this.tableOnly ? "none" : ""}"></div>
-          <div id="${this.containerId}-tableWrapper" style="display: ${this.tableOnly ? "" : "none"}; height:calc(${cardElement.style.height} - 64px)"></div>
+          <div id="${this.containerId}-tableWrapper" style="display: ${this.tableOnly ? "" : "none"}; height:calc(${cardElement.style.height} - 64px)">
+            <div class="w-100 text-center">
+              Loading...
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -372,11 +376,15 @@ export class QueryCard {
   }
 
   setTable(gridData) {
-    this.table = new Tabulator(`#${this.containerId}-tableWrapper`, {
-      data:gridData, //assign data to table
-      layout:"fitDataStretch", //fit columns to width of table (optional)
-      autoColumns: true, // 自动生成列
-    });
+    if(!this.table){
+      this.table = new Tabulator(`#${this.containerId}-tableWrapper`, {
+        data:gridData, //assign data to table
+        layout:"fitDataStretch", //fit columns to width of table (optional)
+        autoColumns: true, // 自动生成列
+      });
+    }else{
+      this.table.replaceData(gridData)
+    }
   }
 
   dataProcessing(gridData){
