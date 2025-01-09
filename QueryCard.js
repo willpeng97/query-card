@@ -1,7 +1,6 @@
 // 依賴套件: echart、bootstrap(bundle)、tabulator、fontawesome，若html中沒有引用就會掛
-const offlineMode = true //使用本地資料測試 mockData.json
-const default_ip = window.default_ip || "localhost";
-const default_Api_Name = window.default_Api_Name || "DCMATE_MEMS_API"
+const default_ip = window.default_ip || "localhost"; // 若沒抓到weyu_config.js，則用此預設值
+const default_Api_Name = window.default_Api_Name || "DCMATE_MEMS_API" // 若沒抓到weyu_config.js，則用此預設值
 
 export class QueryCard {
   constructor({
@@ -110,7 +109,7 @@ export class QueryCard {
           <div class="col-3 col-md-auto px-1">
             <div class="col-form-label fw-bold text-truncate" title="${this.title}">${this.title}</div>
           </div>
-          <div class="col-auto d-flex align-items-center justify-content-end gap-2 px-1">
+          <div class="col-auto d-flex align-items-center justify-content-end gap-1 px-1">
             <div>
               <select id="${this.containerId}-timeUnitInput" class="form-select form-select-sm">
                 <option value="day" ${this.timeUnit === "day" ? "selected" : ""}>日</option>
@@ -415,17 +414,6 @@ export class QueryCard {
   // API取得數據
   // 1. 一般查詢 (GetGrid)
   async getGrid() {
-    if (offlineMode){
-      let mockData = await fetch("./mockData.json")
-        .then((response)=>{
-          return response.json()
-        })
-        .then((data)=>{
-          return data
-        })
-      return mockData
-    }
-
     let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetGrid';
 
     let headers = new Headers({
@@ -449,10 +437,13 @@ export class QueryCard {
         const firstDayThisMonth = new Date(`${this.queryMonth}-01`); // "2024-01-01"
         // 取得下個月的第一天
         const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 1); // "2024-02-01"
+        const startTime = firstDayThisMonth.toLocaleString('en-ca').split(',')[0]
+        const endTime = firstDayNextMonth.toLocaleString('en-ca').split(',')[0]
+
         conditions = {
           "Field": [this.category],
           "Oper": ["BETWEEN"],
-          "Value": [`${firstDayThisMonth.toLocaleString('en-ca').split(',')[0]}' AND '${firstDayNextMonth.toLocaleString('en-ca').split(',')[0]}`]
+          "Value": [`${startTime}' AND '${endTime}`]
         }
     }
 
@@ -486,17 +477,6 @@ export class QueryCard {
   }
   // 2. function查詢 (GetFunctionGrid)
   async getFuncGrid() {
-    if (offlineMode){
-      let mockData = await fetch("./mockData.json")
-        .then((response)=>{
-          return response.json()
-        })
-        .then((data)=>{
-          return data
-        })
-      return mockData
-    }
-
     let getGridURL = window.location.protocol+'//'+default_ip+'/'+default_Api_Name+'/api/GetFunctionGrid';
 
     let headers = new Headers({
@@ -506,15 +486,38 @@ export class QueryCard {
         // 可以添加其他必要的请求头信息
     });
   
-    let conditions = {
-      TABLE_NAME: this.TABLE_NAME,
-      VALUE: ["2024-11-01","2024-11-30","day"],
-      CON: {
-        Field: [],
-        Oper: [],
-        Value: []
-      }
-    };
+    let conditions;
+    switch(this.timeUnit){
+      case "day":
+        conditions = {
+          TABLE_NAME: this.TABLE_NAME,
+          VALUE: [`${this.queryDate} 00:00:00`,`${this.queryDate} 23:59:59`,"day"],
+          CON: {
+            "Field": [],
+            "Oper": [],
+            "Value": []
+          }
+        }
+        break;
+      case "month":
+        // 取得這個月的第一天
+        const firstDayThisMonth = new Date(`${this.queryMonth}-01`); // "2024-01-01"
+        // 取得下個月的第一天
+        const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 1); // "2024-02-01"
+
+        const startTime = firstDayThisMonth.toLocaleString('en-ca').split(',')[0]
+        const endTime = firstDayNextMonth.toLocaleString('en-ca').split(',')[0]
+
+        conditions = {
+          TABLE_NAME: this.TABLE_NAME,
+          VALUE: [startTime, endTime, "day"],
+          CON: {
+            "Field": [],
+            "Oper": [],
+            "Value": []
+          }
+        }
+    }
 
     // 构建请求体
     let requestBody = JSON.stringify(conditions);
