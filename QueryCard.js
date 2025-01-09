@@ -1,4 +1,4 @@
-// 依賴套件: echart、bootstrap(bundle)、tabulator、fontawesome，若html中沒有引用就會掛
+// 依賴套件: echart、bootstrap(bundle)、tabulator、xlsx、fontawesome，若html中沒有引用就會掛
 const default_ip = window.default_ip || "localhost"; // 若沒抓到weyu_config.js，則用此預設值
 const default_Api_Name = window.default_Api_Name || "DCMATE_MEMS_API" // 若沒抓到weyu_config.js，則用此預設值
 
@@ -8,6 +8,7 @@ export class QueryCard {
     isFuncTable = false,
     TABLE_NAME,
     containerId,
+    searchable=false,
     category,
     seriesFields=[],
     title="Query Card",
@@ -17,7 +18,8 @@ export class QueryCard {
     timeUnit="day",
     queryDate=new Date().toISOString().split('T')[0],
     queryMonth=new Date().toISOString().split('T')[0].slice(0,7),
-    styles={}
+    styles={},
+    
   })
   {
     this.SID = SID;
@@ -26,6 +28,7 @@ export class QueryCard {
     this.containerId = containerId; // 容器ID
     this.chart = null;
     this.table = null;
+    this.searchable = searchable
     this.title = title; // 標題
     this.category = category
     this.seriesFields = seriesFields;
@@ -382,6 +385,12 @@ export class QueryCard {
         data:gridData, //assign data to table
         layout:"fitDataStretch", //fit columns to width of table (optional)
         autoColumns: true, // 自动生成列
+        autoColumnsDefinitions: this.searchable ? function (definitions) {
+          return definitions.map((col) => ({
+              ...col,
+              headerFilter: "input", // 为每列添加 input 类型的 headerFilter
+          }));
+        } : ""
       });
     }else{
       this.table.replaceData(gridData)

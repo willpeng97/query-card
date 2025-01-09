@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     timeUnit: "day", // 時間單位 "day" or "month"
     queryDate: "2024-10-09", // 查詢日期，預設為當日
     // tableOnly: true, // 是否只顯示table
+    searchable: true //開啟過濾功能
   });
 
   // type2. Function Table查詢
