@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     queryDate: "2024-10-09"
     // tableOnly: true,
   });
-  card1.init()
+  // card1.init()
 
   // type2. Function Table查詢
   window.card2 = new QueryCard({
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     title: "Query Card 2",
     SID: "366647515707003", //智能查詢SID，必須用資料表函式
     isFuncTable: true, //是否為資料表函式
-    tableOnly: true,
+    // tableOnly: true,
     TABLE_NAME: "GET_GAS_CHART_DATA", //資料表函式的名稱(若isFuncTable則必須填)
     category: "REPORT_TIME", //x軸欄位
     seriesFields: ["RK10","RK4","RK5","RK6","RK7","RK9","SP1000","SP1001","SP150","SP500","SP503"], //y軸欄位
@@ -30,5 +30,5 @@ document.addEventListener("DOMContentLoaded", () => {
     stack: true // 預設是否為堆疊
   });
 
-  // card2.init()
+  card2.init()
 });

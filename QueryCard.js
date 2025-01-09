@@ -1,5 +1,5 @@
-// 依賴套件: echart、bootstrap(bundle)、xlsx.full，若html中沒有引用就會掛
-const offlineMode = false //使用本地資料測試 mockData.json
+// 依賴套件: echart、bootstrap(bundle)、tabulator、fontawesome，若html中沒有引用就會掛
+const offlineMode = true //使用本地資料測試 mockData.json
 const default_ip = window.default_ip || "localhost";
 const default_Api_Name = window.default_Api_Name || "DCMATE_MEMS_API"
 
@@ -26,6 +26,7 @@ export class QueryCard {
     this.TABLE_NAME = TABLE_NAME;
     this.containerId = containerId; // 容器ID
     this.chart = null;
+    this.table = null;
     this.title = title; // 標題
     this.category = category
     this.seriesFields = seriesFields;
@@ -106,10 +107,10 @@ export class QueryCard {
     cardElement.innerHTML = `
       <div class="card-header py-1">
         <div class="row align-items-center justify-content-between">
-          <div class="col-auto">
+          <div class="col-auto px-1">
             <div class="col-form-label fw-bold">${this.title}</div>
           </div>
-          <div class="col-auto d-flex align-items-center gap-2">
+          <div class="col-auto d-flex align-items-center gap-2 px-1">
             <div>
               <select id="${this.containerId}-timeUnitInput" class="form-select form-select-sm">
                 <option value="day" ${this.timeUnit === "day" ? "selected" : ""}>日</option>
@@ -188,7 +189,7 @@ export class QueryCard {
       <div class="card-body pt-1">
         <div id="${this.containerId}-content" class="h-100">
           <div id="${this.containerId}-chart" class="h-100" style="display: ${this.tableOnly ? "none" : ""}"></div>
-          <div id="${this.containerId}-tableWrapper" class="overflow-auto" style="display: ${this.tableOnly ? "" : "none"}; height:calc(${cardElement.style.height} - 64px)"></div>
+          <div id="${this.containerId}-tableWrapper" style="display: ${this.tableOnly ? "" : "none"}; height:calc(${cardElement.style.height} - 64px)"></div>
         </div>
       </div>
     `;
@@ -372,32 +373,11 @@ export class QueryCard {
   }
 
   setTable(gridData) {
-    const tableWrapper = document.getElementById(`${this.containerId}-tableWrapper`);
-    tableWrapper.innerHTML = ''; // 清空容器內容
-    
-    // 動態生成表格標題
-    try{
-      const columns = Object.keys(gridData[0]); //取得所有欄位名
-      const table = `
-        <table id="${this.containerId}-table" class="table table-sm mb-0">
-          <thead class="sticky-top">
-            <tr>
-              ${columns.map((column) => `<th>${column}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${gridData.map((row) => `
-              <tr>
-                ${columns.map((column)=>`<td>${row[column]}</td>`).join('')}
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `
-      tableWrapper.innerHTML = table;
-    }catch{
-      tableWrapper.innerHTML = `<div>No Data</div>`
-    }
+    this.table = new Tabulator(`#${this.containerId}-tableWrapper`, {
+      data:gridData, //assign data to table
+      layout:"fitDataStretch", //fit columns to width of table (optional)
+      autoColumns: true, // 自动生成列
+    });
   }
 
   dataProcessing(gridData){
@@ -583,27 +563,8 @@ export class QueryCard {
     link.click();
   }
   downloadXlsx() {
-    // 取得表格元素
-    const table = document.getElementById(`${this.containerId}-table`);
-    
-    // 將表格轉換為工作簿物件
-    const wb = XLSX.utils.table_to_book(table, { raw: true });
-  
-    // 遍歷所有的工作表並設定數字格式
-    Object.keys(wb.Sheets).forEach(sheetName => {
-      const ws = wb.Sheets[sheetName];
-      Object.keys(ws).forEach(cellAddress => {
-      if (ws[cellAddress].t === 's' && !isNaN(ws[cellAddress].v)) {
-        // 如果儲存格是字串類型且內容是數字，轉為數字格式
-        ws[cellAddress].t = 'n';
-        ws[cellAddress].v = parseFloat(ws[cellAddress].v);
-      }
-      });
-    });
-  
-    // 將工作簿保存為檔案
     const now = new Date();
     const formattedDate = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
-    XLSX.writeFile(wb, `${this.title}_data_${formattedDate}.xlsx`);
+    this.table.download("xlsx", `${this.title}_data_${formattedDate}.xlsx`, {sheetName:"sheet1",compress:false}); //download a xlsx file using SheetJS properties
   }
 }
