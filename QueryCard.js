@@ -15,9 +15,11 @@ export class QueryCard {
     tableOnly=false,
     type="line",
     stack=false,
+    showLable=false,
     timeUnit="day",
     queryDate=new Date().toISOString().split('T')[0],
     queryMonth=new Date().toISOString().split('T')[0].slice(0,7),
+    queryYear=new Date().toISOString().split('T')[0].slice(0,4),
     styles={},
     
   })
@@ -35,9 +37,11 @@ export class QueryCard {
     this.tableOnly = tableOnly;
     this.type = type.toLowerCase();
     this.stack = stack;
+    this.showLabel = showLable
     this.timeUnit = timeUnit.toLowerCase()
     this.queryDate = queryDate
     this.queryMonth = queryMonth
+    this.queryYear = queryYear
     this.styles = styles; // 卡片樣式
     this.option = {
       grid: {
@@ -115,16 +119,20 @@ export class QueryCard {
           </div>
           <div class="col-auto d-flex align-items-center justify-content-end gap-1 px-1">
             <div>
-              <select id="${this.containerId}-timeUnitInput" class="form-select form-select-sm">
+              <select id="${this.containerId}-timeUnitInput" class="form-select form-select-sm"style="display: ${this.category ? "" : "none"}">
                 <option value="day" ${this.timeUnit === "day" ? "selected" : ""}>日</option>
                 <option value="month" ${this.timeUnit === "month" ? "selected" : ""}>月</option>
+                <option value="year" ${this.timeUnit === "year" ? "selected" : ""}>年</option>
               </select>
             </div>
-            <div style="display: ${this.timeUnit === "day" ? "" : "none"}">
+            <div style="display: ${this.category && this.timeUnit === "day" ? "" : "none"}">
               <input type="date" id="${this.containerId}-queryDateInput" value="${this.queryDate}" class="form-control form-control-sm">
             </div>
-            <div style="display: ${this.timeUnit === "month" ? "" : "none"}">
+            <div style="display: ${this.category && this.timeUnit === "month" ? "" : "none"}">
               <input type="month" id="${this.containerId}-queryMonthInput" value="${this.queryMonth}" class="form-control form-control-sm">
+            </div>
+            <div style="display: ${this.category && this.timeUnit === "year" ? "" : "none"}" class="w-25">
+              <input type="number" id="${this.containerId}-queryYearInput" value="${this.queryYear}" class="form-control form-control-sm">
             </div>
             <div style="display:${this.seriesFields.length <= 1|this.tableOnly ? "none" : ""}">
               <input type="checkbox" class="btn-check" id="${this.containerId}-isStack" autocomplete="off" ${this.stack ? "checked" : ""}>
@@ -209,16 +217,24 @@ export class QueryCard {
     const timeUnitInput = cardElement.querySelector(`#${this.containerId}-timeUnitInput`);
     const queryDateInput = cardElement.querySelector(`#${this.containerId}-queryDateInput`);
     const queryMonthInput = cardElement.querySelector(`#${this.containerId}-queryMonthInput`);
+    const queryYearInput = cardElement.querySelector(`#${this.containerId}-queryYearInput`);
     timeUnitInput.addEventListener('change', () => {
       this.timeUnit = timeUnitInput.value
       switch(this.timeUnit){
         case "day":
           queryDateInput.parentElement.style.display = '';
           queryMonthInput.parentElement.style.display = 'none';
+          queryYearInput.parentElement.style.display = 'none';
           break;
         case "month":
           queryMonthInput.parentElement.style.display = '';
           queryDateInput.parentElement.style.display = 'none';
+          queryYearInput.parentElement.style.display = 'none';
+          break;
+        case "year":
+          queryYearInput.parentElement.style.display = '';
+          queryDateInput.parentElement.style.display = 'none';
+          queryMonthInput.parentElement.style.display = 'none';
           break;
       }
       this.update()
@@ -229,6 +245,10 @@ export class QueryCard {
     });
     queryMonthInput.addEventListener('change', () => {
       this.queryMonth = queryMonthInput.value
+      this.update()
+    });
+    queryYearInput.addEventListener('change', () => {
+      this.queryYear = queryYearInput.value
       this.update()
     });
 
@@ -411,6 +431,7 @@ export class QueryCard {
           stack: this.stack ? "stacked" : null,
           smooth: true,
           barGap: 0,
+          label: {show: this.showLabel},
           emphasis: {
             focus: "series",
           },
@@ -441,28 +462,44 @@ export class QueryCard {
         // 可以添加其他必要的请求头信息
     });
   
-    let conditions;
-    switch(this.timeUnit){
-      case "day":
-        conditions = {
-          "Field": [this.category],
-          "Oper": ["BETWEEN"],
-          "Value": [`${this.queryDate} 00:00:00' AND '${this.queryDate} 23:59:59`]
-        }
-        break;
-      case "month":
-        // 取得這個月的第一天
-        const firstDayThisMonth = new Date(`${this.queryMonth}-01`); // "2024-01-01"
-        // 取得下個月的第一天
-        const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 0); // "2024-02-01"
-        const startTime = firstDayThisMonth.toLocaleString('en-ca').split(',')[0]
-        const endTime = firstDayNextMonth.toLocaleString('en-ca').split(',')[0] + " 23:59:59"
-
-        conditions = {
-          "Field": [this.category],
-          "Oper": ["BETWEEN"],
-          "Value": [`${startTime}' AND '${endTime}`]
-        }
+    let conditions = {};
+    // 若無指定category, 則全搜尋
+    if(this.category){
+      switch(this.timeUnit){
+        case "day":
+          conditions = {
+            "Field": [this.category],
+            "Oper": ["BETWEEN"],
+            "Value": [`${this.queryDate} 00:00:00' AND '${this.queryDate} 23:59:59`]
+          }
+          break;
+        case "month":
+          // 取得這個月的第一天
+          const firstDayThisMonth = new Date(`${this.queryMonth}-01`); // "2024-01-01"
+          // 取得下個月的第一天
+          const firstDayNextMonth = new Date(firstDayThisMonth.getFullYear(), firstDayThisMonth.getMonth() + 1, 0); // "2024-02-01"
+          const startTime = firstDayThisMonth.toLocaleString('en-ca').split(',')[0]
+          const endTime = firstDayNextMonth.toLocaleString('en-ca').split(',')[0] + " 23:59:59"
+  
+          conditions = {
+            "Field": [this.category],
+            "Oper": ["BETWEEN"],
+            "Value": [`${startTime}' AND '${endTime}`]
+          }
+          // conditions = {
+          //   "Field": [this.category],
+          //   "Oper": ["="],
+          //   "Value": [this.queryMonth]
+          // }
+          break;
+        case "year":
+          conditions = {
+            "Field": [`SUBSTRING(${this.category},0, 5)`],
+            "Oper": ["="],
+            "Value": [this.queryYear]
+          }
+          break;
+      }
     }
 
     // 构建请求体
@@ -529,6 +566,17 @@ export class QueryCard {
         conditions = {
           TABLE_NAME: this.TABLE_NAME,
           VALUE: [startTime, endTime, "day"],
+          CON: {
+            "Field": [],
+            "Oper": [],
+            "Value": []
+          }
+        }
+        break;
+      case "year":
+        conditions = {
+          TABLE_NAME: this.TABLE_NAME,
+          VALUE: [this.queryMonth],
           CON: {
             "Field": [],
             "Oper": [],
